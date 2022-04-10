@@ -7,14 +7,14 @@
 #define LCD_RD A0    // LCD Read goes to Analog 0
 #define LCD_RESET A4 // Can alternately just connect to Arduino's reset pin
 
-#include <SPI.h>          // f.k. for Arduino-1.5.2
+#include <SPI.h> 
+#include <SD.h>
+File myFile;
+// f.k. for Arduino-1.5.2
 #include "Adafruit_GFX.h" // Hardware-specific library
 #include <MCUFRIEND_kbv.h>
 MCUFRIEND_kbv tft;
-//#include <Adafruit_TFTLCD.h>
-// Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 
-// Assign human-readable names to some common 16-bit color values:
 #define BLACK 0x0000
 #define BLUE 0x001F
 #define RED 0xF800
@@ -57,12 +57,19 @@ int r6 = -1;
 void setup()
 {
   Serial.begin(9600);
+  Serial.print("Initializing SD card...");
+
+  if (!SD.begin(10)) {
+    Serial.println("initialization failed!");
+    while (1);
+  }
+  Serial.println("initialization done.");
   uint16_t ID = tft.readID();
   tft.begin(ID);
   tft.setRotation(0);
   tft.fillScreen(BLACK);
   pageno = 1;
-  pageno = 8;
+  pageno = 5;
   ppage = -1;
 }
 
@@ -70,6 +77,9 @@ void loop()
 {
   // put your main code here, to run repeatedly:
   tft.fillScreen(BLACK);
+  tft.setTextSize(2);
+  tft.setTextColor(WHITE);
+  //keyboard("");
   if (pageno == 1)
   {
     pageno = HomeScreen(); // Draw HomeScreen
@@ -102,11 +112,7 @@ void loop()
     ppage = 6;
   }
 
-  else if (pageno == 61)
-  {
-    pageno = timer();
-    ppage = 61;
-  }
+  
   else if (pageno == 7)
   {
     pageno = ticTacToe();
@@ -131,6 +137,96 @@ void loop()
 }
 //////////////////////////////////////////////////////////////////////
 
+String keyboard(String Input) {
+  tft.fillRect(0, height - 30, width, 30,  RED);
+  tft.setTextColor(WHITE);
+  tft.setTextSize(2);
+  tft.setCursor(30, 50);
+  int i = 0;
+  int cas = 0; //0->lower  1-> upper
+  tft.setTextColor(BLACK);
+  for (i = 0; i < 10; i += 1) {
+
+    tft.fillRect(width * i / 10 + 2, height - 280 + (50 * 0) + 5, width / 10 - 4, 40, WHITE);
+    tft.setCursor(width * i / 10 + 10, height - 280 + (50 * 0) + 20);
+    tft.print(String(i));
+  }
+  String l1l = "qwertyuiop";
+  String l1u = "QWERTYUIOP";
+  for (i = 0; i < 10; i += 1) {
+
+    tft.fillRect(width * i / 10 + 2, height - 280 + (50 * 1) + 5, width / 10 - 4, 40, WHITE);
+    tft.setCursor(width * i / 10 + 10, height - 280 + (50 * 1) + 20);
+    if (cas == 0) {
+      tft.print(l1l[i]);
+    }
+    if (cas == 1) {
+      tft.print(l1u[i]);
+    }
+
+  }
+  String l2l = "asdfghjkl";
+  String l2u = "ASDFGHJKL";
+  for (i = 0; i < 9; i += 1) {
+
+    tft.fillRect(width * i / 9 + 2, height - 280 + (50 * 2) + 5, width / 10 - 4, 40, WHITE);
+    tft.setCursor(width * i / 9 + 10, height - 280 + (50 * 2) + 20);
+    if (cas == 0) {
+      tft.print(l2l[i]);
+    }
+    if (cas == 1) {
+      tft.print(l2u[i]);
+    }
+
+  }
+
+  String l3l = "zxcvbnm";
+  String l3u = "ZXCVBNM";
+  for (i = 0; i < 7; i += 1) {
+
+    tft.fillRect(width * i / 8 + 2, height - 280 + (50 * 3) + 5, width / 10 - 4, 40, WHITE);
+    tft.setCursor(width * i / 8 + 10, height - 280 + (50 * 3) + 20);
+    if (cas == 0) {
+      tft.print(l3l[i]);
+    }
+    if (cas == 1) {
+      tft.print(l3u[i]);
+    }
+
+  }
+  tft.fillRect(width * i / 8 + 2, height - 280 + (50 * 3) + 5, width / 10 - 4, 40, WHITE);
+  tft.setCursor(width * i / 8 + 3, height - 280 + (50 * 3) + 20);
+  tft.print("<x");
+  tft.fillRect(width * 0 / 9 + 2, height - 280 + (50 * 4) + 5, width  / 5 - 4, 40, WHITE);
+  tft.setCursor(width * 0 / 9 + 3, height - 280 + (50 * 4) + 20);
+  tft.print("^shft");
+  tft.fillRect(width * 2 / 9 + 2, height - 280 + (50 * 4) + 5, width / 10 - 4, 40, WHITE);
+  tft.setCursor(width * 2 / 9 + 3, height - 280 + (50 * 4) + 20);
+  tft.print("<-");
+  tft.fillRect(width * 3 / 9 + 2, height - 280 + (50 * 4) + 5, width * 3 / 10 - 4, 40, WHITE);
+  tft.setCursor(width * 3 / 9 + 3, height - 280 + (50 * 4) + 20);
+  tft.print("[SPACE]");
+  tft.fillRect(width * 6 / 9 + 2, height - 280 + (50 * 4) + 5, width / 10 - 4, 40, WHITE);
+  tft.setCursor(width * 6 / 9 + 3, height - 280 + (50 * 4) + 20);
+  tft.print("->");
+  tft.fillRect(width * 7 / 9 + 2, height - 280 + (50 * 4) + 5, width * 2 / 10 - 4, 40, WHITE);
+  tft.setCursor(width * 7 / 9 + 3, height - 280 + (50 * 4) + 20);
+  tft.print("ENT");
+  //tft.setTextColor(WHITE);
+  while (true)
+  {
+    if (isTouch())
+    {Serial.print(tp.x);
+      Serial.print(",");
+      Serial.println(tp.y);
+      if (tp.x > 860 && tp.x < 925)
+      {
+        tft.fillScreen(BLACK);
+        return("");
+      }
+    }
+  }
+}
 
 
 int drawNumPad(int x, int y)
@@ -180,9 +276,6 @@ int HomeScreen()
   {
     if (isTouch())
     {
-      // Serial.print(tp.x);
-      // Serial.print(",");
-      // Serial.println(tp.y);
       if (tp.x > 850 && tp.x < 930)
       {
         if (tp.y > 769 && tp.y < 880)
@@ -224,9 +317,6 @@ int AppScreen()
   tft.fillRect(28, 200, 50, 50, WHITE);
   tft.fillRect(135, 200, 50, 50, WHITE);
   tft.fillRect(241, 200, 50, 50, WHITE);
-  tft.setCursor(9, 9);
-  tft.setTextColor(BLACK);
-  tft.print("A");
   while (true)
   {
     if (isTouch())
@@ -293,16 +383,7 @@ int settings()
   tft.fillRect(0, 0, width, 30, WHITE);
   tft.fillRect(0, height - 30, width, 30,  RED);
   tft.setCursor(30, 50);
-  tft.setTextColor(WHITE);
-  tft.setTextSize(2);
   tft.print("Setting :_");
-  // tft.fillRect(28, 90, 50, 50, WHITE);
-  tft.setTextColor(BLACK);
-  tft.setCursor(9, 9);
-  tft.setTextSize(2.5);
-  tft.print("A");
-  tft.setTextSize(2);
-  tft.setTextColor(WHITE);
   tft.setCursor(15, 200);
   tft.print("SECURITY :");
   tft.setCursor(width + 1, height + 1);
@@ -322,9 +403,9 @@ int settings()
 
     if (isTouch())
     {
-      Serial.print(tp.x);
-      Serial.print(",");
-      Serial.println(tp.y);
+      //Serial.print(tp.x);
+      //Serial.print(",");
+      //Serial.println(tp.y);
       if (tp.x > 150 && tp.x < 230)
       {
         return 3;
@@ -358,15 +439,17 @@ int notes()
   tft.fillRect(0, 0, width, 30, WHITE);
   tft.fillRect(0, height - 30, width, 30,  RED);
   tft.setCursor(30, 50);
-  tft.setTextColor(WHITE);
-  tft.setTextSize(2);
   tft.print("Notes :_");
-  // tft.fillRect(28, 90, 50, 50, WHITE);
-  tft.setTextColor(BLACK);
-
-  tft.print("A");
-  tft.setTextSize(2);
-  tft.setTextColor(WHITE);
+  tft.setCursor(25, height - 62);
+  tft.drawRect(0, height - 80, width / 2, 50, BLUE);
+  tft.print("^ Up ");
+  tft.setCursor(width / 2 + 45, height - 62);
+  tft.drawRect(width / 2, height - 80, width / 2, 50, BLUE);
+  tft.print("v Down");
+  tft.setCursor( width -75, 57);
+  tft.fillRect(width -90, 45, 90, 40, BLUE);
+  tft.print("+ NEW ");
+  
   while (true)
   {
     if (isTouch())
@@ -393,9 +476,17 @@ int clk()
   r2 = 0;//min
   r3 = 0;//sec
   r4 = 0; // 0->not running 1-> running
-  tft.setTextSize(7);
-  tft.setCursor(30, height / 2 - 62);
+  tft.setCursor(30, 50);
+  tft.print("Clock : Stopwatch");
+ 
+  tft.setTextSize(4);
+  tft.fillRect(width / 2 - 75, height / 2 + 40, 150, 50, WHITE);
+  tft.setTextColor(BLUE);
+  tft.setCursor(width / 2 - 57, height / 2 + 50);
+  tft.print("Start");
   tft.setTextColor(WHITE);
+   tft.setTextSize(7);
+  tft.setCursor(30, height / 2 - 62);
   tft.print(String(r1));
   tft.print(":");
   tft.print(String(r2));
@@ -403,34 +494,15 @@ int clk()
   tft.print(String(r3));
   tft.fillRect(0, 0, width, 30, WHITE);
   tft.fillRect(0, height - 30, width, 30,  RED);
-  tft.fillRect(width / 2 - 75, height / 2 + 40, 150, 50, WHITE);
-  tft.setTextSize(4);
-  tft.setTextColor(BLUE);
   tft.setCursor(width / 2 - 57, height / 2 + 50);
-  tft.print("Start");
-  tft.setTextColor(WHITE);
-  tft.setTextSize(2);
-  tft.setCursor(25, height - 62);
-  tft.fillRect(0, height - 80, width / 2, 50, BLUE);
-  tft.print("StopWatch");
-  tft.setCursor(width / 2 + 45, height - 62);
-  tft.print("Timer");
-  tft.setCursor(30, 50);
-  tft.setTextColor(WHITE);
-  tft.setTextSize(2);
-  tft.print("Clock : Stopwatch");
+  
+
   // tft.fillRect(28, 90, 50, 50, WHITE);
-  tft.setTextColor(BLACK);
-  tft.print("A");
-  tft.setTextSize(2);
-  tft.setTextColor(WHITE);
   while (true)
   {
     if (isTouch())
     {
-      Serial.print(tp.x);
-      Serial.print(",");
-      Serial.println(tp.y);
+      
       if (tp.x > 150 && tp.x < 230)
       {
         return 3;
@@ -439,12 +511,7 @@ int clk()
       {
         return 2;
       }
-      else if (tp.x > 790 && tp.x < 860) {
-        if (tp.y > 582) {
-          return 61;
-
-        }
-      }
+ 
       else if (tp.x > 600 && tp.x < 700 && tp.y > 419 && tp.y < 766) {
 
         if (r4 == 0) {
@@ -452,7 +519,7 @@ int clk()
           tft.fillRect(width / 2 - 75, height / 2 + 40, 150, 50, BLUE);
           tft.setTextSize(4);
           tft.setTextColor(WHITE);
-          tft.setCursor(width / 2 - 57, height / 2 + 50);
+          
           tft.print("Start");
         }
         else {
@@ -460,71 +527,20 @@ int clk()
           tft.fillRect(width / 2 - 75, height / 2 + 40, 150, 50, WHITE);
           tft.setTextSize(4);
           tft.setTextColor(BLUE);
-          tft.setCursor(width / 2 - 57, height / 2 + 50);
+          
           tft.print("Start");
         }
-
-
-      }
-
-    }
-
-
-  }
-}
-
-int timer() {
-
-  tft.fillRect(0, 0, width, 30, WHITE);
-  tft.fillRect(0, height - 30, width, 30,  RED);
-  tft.setTextColor(WHITE);
-  tft.setTextSize(2);
-  tft.setCursor(25, height - 62);
-  tft.fillRect(0, height - 80, width / 2, 50, BLACK);
-  tft.print("StopWatch");
-  tft.setCursor(width / 2 + 45, height - 62);
-  tft.fillRect(width / 2, height - 80, width / 2, 50, BLUE);
-  tft.print("Timer");
-  tft.setCursor(30, 50);
-  tft.print("Clock : TIMER");
-
-  while (true)
-  {
-    if (isTouch())
-    {
-      Serial.print(tp.x);
-      Serial.print(",");
-      Serial.println(tp.y);
-      if (tp.x > 150 && tp.x < 230)
-      {
-        return 3;
-      }
-      if (tp.x > 860 && tp.x < 925)
-      {
-        return 2;
-      }
-      if (tp.x > 790 && tp.x < 860) {
-        if (tp.y < 582) {
-          return 6;
-
-
-        }
-
-
       }
     }
   }
-
 }
-
 
 
 int ticTacToe()
 {
   tft.fillRect(0, 0, width, 30, WHITE);
   tft.fillRect(0, height - 30, width, 30,  RED);
-  tft.setTextColor(WHITE);
-  tft.setTextSize(2);
+  
   tft.setCursor(30, 50);
   tft.print("Tic Tac Toe : ");
   tft.fillRect(0, 90, width, 50, WHITE);
@@ -534,7 +550,6 @@ int ticTacToe()
   tft.fillRect(0, 165, width, 50, WHITE);
   tft.setCursor(10, 182);
   tft.print("2. Human Vs Computer");
-
   tft.setTextColor(WHITE);
   while (true)
   {
@@ -565,8 +580,7 @@ int ticTacToe()
 int ttch() {
   tft.fillRect(0, 0, width, 30, WHITE);
   tft.fillRect(0, height - 30, width, 30,  RED);
-  tft.setTextColor(WHITE);
-  tft.setTextSize(2);
+  
   tft.setCursor(30, 50);
   tft.print("Tic Tac Toe : H Vs H");
 
@@ -598,12 +612,10 @@ int ttch() {
 int ttcc() {
   tft.fillRect(0, 0, width, 30, WHITE);
   tft.fillRect(0, height - 30, width, 30,  RED);
-  tft.setTextColor(WHITE);
-  tft.setTextSize(2);
+
   tft.setCursor(30, 50);
   tft.print("Tic Tac Toe : H Vs C ");
 
-  tft.setTextColor(WHITE);
   while (true)
   {
     if (isTouch())
@@ -631,8 +643,7 @@ int calc()
 {
   tft.fillRect(0, 0, width, 30, WHITE);
   tft.fillRect(0, height - 30, width, 30,  RED);
-  tft.setTextColor(WHITE);
-  tft.setTextSize(2);
+
   tft.setCursor(30, 50);
   tft.print("Calculator : ");
   tft.fillRect(0, 90, width, 50, WHITE);
@@ -647,11 +658,10 @@ int calc()
       r3 += 1;
     }
   }
-  //tft.setTextColor(WHITE);
   tft.fillRect(width * 0 / 4 + 10, height - 230 + (50 * 3) + 5, width / 2 - 20, 40, WHITE);
   tft.setCursor(width * 0 / 4 + 35, height - 230 + (50 * 3) + 20);
   tft.print("0");
-  //tft.setTextColor(BLACK);
+
 
 
   tft.fillRect(width * 2 / 4 + 10, height - 230 + (50 * 3) + 5, width / 4 - 20, 40, BLUE);
@@ -676,7 +686,6 @@ int calc()
   tft.setCursor(width * r1 / 4 + 35, height - 230 + (50 * 0) + 20);
   tft.print("+");
 
-  tft.setTextColor(WHITE);
   while (true)
   {
     if (isTouch())
